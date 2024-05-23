@@ -1,0 +1,57 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+    commands:
+      # - curl -o kubectl https://amazon-eks.s3.us-west-2.amazonaws.com/1.16.12/2020-07-08/bin/linux/amd64/kubectl
+      # - chmod +x ./kubectl
+      # - mv ./kubectl /usr/local/bin/kubectl
+      # - mkdir ~/.kube
+      # - export KUBECONFIG=$HOME/.kube/config      
+      # - aws sts get-caller-identity
+      # - aws eks update-kubeconfig --region us-east-1 --name ccoe-dev-eks-clstr
+      # - cat ~/.kube/config
+      # - echo Test kubectl...
+      # - kubectl version --client
+      # - kubectl get node
+      - mvn clean install -DskipTests=true
+  pre_build:
+    commands:
+      - mvn package
+      - echo Logging in to Amazon ECR...
+      # - echo "IMAGE_REPO_NAME - $IMAGE_REPO_NAME"
+      # - echo "IMAGE_TAG - $IMAGE_TAG"
+      # - echo "AWS_ACCOUNT_ID - $AWS_ACCOUNT_ID"
+      # - echo "AWS_DEFAULT_REGION - $AWS_DEFAULT_REGION"
+      # - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 086015456585.dkr.ecr.ap-northeast-2.amazonaws.com
+      # - CODEBUILD_RESOLVED_SOURCE_VERSION="${CODEBUILD_RESOLVED_SOURCE_VERSION:-$IMAGE_TAG}"
+      # - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      # - echo "IMAGE_TAG - $IMAGE_TAG"
+      # - IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG"
+      # - echo "IMAGE_URI - $IMAGE_URI"
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      # - docker build -t $IMAGE_URI .
+      - docker build -t egov-be .
+  post_build:
+    commands:
+      - bash -c "if [ /"$CODEBUILD_BUILD_SUCCEEDING/" == /"0/" ]; then exit 1; fi"
+      - echo Build stage successfully completed on `date`
+      - echo Pushing the Docker image...
+      # - docker push $IMAGE_URI
+      - docker tag egov-be:latest 086015456585.dkr.ecr.ap-northeast-2.amazonaws.com/egov-be:latest
+      - docker push 086015456585.dkr.ecr.ap-northeast-2.amazonaws.com/egov-be:latest
+      # - AWS_ECR_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG
+      # - DATE=`date`
+      # - echo Build completed on $DATE
+      # - sed -i.bak 's#AWS_ECR_URI#'"$AWS_ECR_URI"'#' ./k8s/deployment.yaml
+      # - sed -i.bak 's#DATE_STRING#'"$DATE"'#' ./k8s/deployment.yaml
+      # - kubectl get node
+      # - kubectl apply -f ./k8s/deployment.yaml
+      # - kubectl apply -f ./k8s/service.yaml
+      # - kubectl apply -f ./k8s/ingress.yaml
