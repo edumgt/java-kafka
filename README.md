@@ -1,5 +1,5 @@
 # Java & Apache Kafka
-
+.............
 ## Descrição
 
 Repositório destinado ao entendimento do conceito e da prática do Kafka. Pretendo aprender um pouco mais sobre o Apache Kafka e sua relação com a linguagem Java.
